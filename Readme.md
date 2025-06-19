@@ -128,14 +128,6 @@ docker run -p 8000:8000 --env-file .env -v $(pwd):/app hr-multiagent-api
 
 ---
 
-## Testing
-
-- Run tests with:
-  ```bash
-  pytest
-  ```
-
----
 
 ## Deployment
 
@@ -146,8 +138,7 @@ docker run -p 8000:8000 --env-file .env -v $(pwd):/app hr-multiagent-api
 
 ## License
 
-MIT License
-
+NONE
 ---
 
 ## Acknowledgements
