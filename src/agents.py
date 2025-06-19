@@ -74,7 +74,6 @@ You will receive resume text in the variable {{merged_context_json}}.
 Take filename from profile_path context variable and save the merged context JSON data to a file named 'Profile_Analysis_Result_<filename>_YYYYMMDD_HHMMSS.json'.
 For saving pass it to tool 'save_context_to_json' with the following parameters:
     - context_data: the merged JSON object
-    - filename: the original profile_path (or its_base name) if notable extract then use demo_.pdf
     - output_key: "Profile_Analysis_Result_json"
 Ensure the file is saved in the current working directory.
 and 

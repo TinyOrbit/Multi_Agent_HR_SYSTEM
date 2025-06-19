@@ -58,7 +58,7 @@ def json_to_bigquery(json_file):
             return {"error": f"BigQuery insertion errors: {errors}"}
         else:
             logger.info("Data inserted successfully into BigQuery.")
-            return {"success": True}
+            return json_file
     except Exception as e:
         logger.exception(f"Exception during BigQuery insertion: {e}")
         return {"error": f"Exception during BigQuery insertion: {e}"}
@@ -102,7 +102,9 @@ def convert_gh_to_modified_json(input_json):
     if "skills" in profile and isinstance(profile["skills"], list):
         profile["skills"] = ", ".join([str(skill) for skill in profile["skills"]])
     modified_json.update(profile)
+    print(input_json)
     attribute_scores = input_json.get("attribute_scores", {})
+
     modified_json.update(attribute_scores)
     semantic_match = input_json.get("semantic_match", {})
     modified_json.update(semantic_match)
@@ -142,8 +144,8 @@ def save_context_to_json(context_data: dict, output_key: str):
         if not isinstance(context_data, dict):
             logger.error("Context data must be a dictionary.")
             return {"error": "Context data must be a dictionary."}
-        
-        result = json_to_bigquery(context_data)
+        _new_context_data = convert_gh_to_modified_json(context_data)
+        result = json_to_bigquery(_new_context_data)
         logger.info("Context saved to BigQuery.")
         return result
     except Exception as e:
@@ -151,28 +153,61 @@ def save_context_to_json(context_data: dict, output_key: str):
         return {"error": f"Error saving context to BigQuery: {e}"}
 
 # --- Extract Text from Local File ---
+# def extract_text_from_file(file_path: str):
+#     try:
+#         if not isinstance(file_path, str) or not file_path:
+#             logger.error("Invalid file path provided.")
+#             return {"error": "Invalid file path."}
+#         if file_path.lower().endswith(".pdf"):
+#             try:
+#                 reader = PdfReader(file_path)
+#                 text = ""
+#                 for page in reader.pages:
+#                     text += page.extract_text() or ""
+#                 logger.info(f"Extracted text from PDF: {file_path}")
+#                 return text
+#             except Exception as e:
+#                 logger.exception(f"Error reading PDF file: {e}")
+#                 return {"error": f"Error reading PDF file: {e}"}
+#         elif file_path.lower().endswith(".docx"):
+#             try:
+#                 from docx import Document
+#                 doc = Document(file_path)
+#                 for para in doc.paragraphs:
+#                     text += para.text + "\n"
+#                 return text
+#             except Exception as e:
+#                 raise RuntimeError(f"Error reading DOCX: {e}")
+#         else:
+#             logger.error("Unsupported file type.")
+#             return {"error": "Unsupported file type. Only PDF supported in this example."}
+#     except Exception as e:
+#         logger.exception(f"Exception during file extraction: {e}")
+#         return {"error": f"Exception during file extraction: {e}"}
+
 def extract_text_from_file(file_path: str):
-    try:
-        if not isinstance(file_path, str) or not file_path:
-            logger.error("Invalid file path provided.")
-            return {"error": "Invalid file path."}
-        if file_path.lower().endswith(".pdf"):
-            try:
-                reader = PdfReader(file_path)
-                text = ""
+    ext = os.path.splitext(file_path)[1].lower()
+    text = ""
+    if ext == ".pdf" or ext==".PDF":
+        try:
+            import PyPDF2
+            with open(file_path, "rb") as f:
+                reader = PyPDF2.PdfReader(f)
                 for page in reader.pages:
                     text += page.extract_text() or ""
-                logger.info(f"Extracted text from PDF: {file_path}")
-                return text
-            except Exception as e:
-                logger.exception(f"Error reading PDF file: {e}")
-                return {"error": f"Error reading PDF file: {e}"}
-        else:
-            logger.error("Unsupported file type.")
-            return {"error": "Unsupported file type. Only PDF supported in this example."}
-    except Exception as e:
-        logger.exception(f"Exception during file extraction: {e}")
-        return {"error": f"Exception during file extraction: {e}"}
+        except Exception as e:
+            raise RuntimeError(f"Error reading PDF: {e}")
+    elif ext == ".docx":
+        try:
+            from docx import Document
+            doc = Document(file_path)
+            for para in doc.paragraphs:
+                text += para.text + "\n"
+        except Exception as e:
+            raise RuntimeError(f"Error reading DOCX: {e}")
+    else:
+        raise ValueError(f"Unsupported file type: {ext}")
+    return text
 
 # --- Extract Texts from GCS Bucket ---
 def extract_texts_from_gcs(bucket_name, prefix, service_account_json, archive_prefix="archive_cv/"):
