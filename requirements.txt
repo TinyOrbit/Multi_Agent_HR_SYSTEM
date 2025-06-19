@@ -1,0 +1,12 @@
+google-adk
+google-cloud-aiplatform[adk,agent-engines]
+google-genai
+pydantic
+python-dotenv
+google-adk[eval]
+pytest
+pytest-asyncio
+absl-py 
+PyPDF2
+python-docx 
+# textract
