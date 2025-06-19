@@ -134,19 +134,21 @@ def convert_gh_to_modified_json(input_json):
 
 
 # --- Save Context to JSON and BigQuery ---
-def save_context_to_json(context_data: dict, filename: str, output_key: str):
+def save_context_to_json(context_data: dict, output_key: str):
+    """
+    Save context data to BigQuery only.
+    """
     try:
-        import json
         if not isinstance(context_data, dict):
             logger.error("Context data must be a dictionary.")
             return {"error": "Context data must be a dictionary."}
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump({output_key: context_data}, f, ensure_ascii=False, indent=4)
-        logger.info(f"Context saved to {filename}")
-        return {"success": True, "filename": filename}
+        
+        result = json_to_bigquery(context_data)
+        logger.info("Context saved to BigQuery.")
+        return result
     except Exception as e:
-        logger.exception(f"Error saving context to JSON: {e}")
-        return {"error": f"Error saving context to JSON: {e}"}
+        logger.exception(f"Error saving context to BigQuery: {e}")
+        return {"error": f"Error saving context to BigQuery: {e}"}
 
 # --- Extract Text from Local File ---
 def extract_text_from_file(file_path: str):
